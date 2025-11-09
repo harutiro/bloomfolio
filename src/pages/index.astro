@@ -14,7 +14,11 @@ import bloomfolioLogo from "../assets/bloomfolio.png";
 
 // Load about content
 const aboutEntry = await getEntry("about", "about");
-const { Content: AboutContent } = await render(aboutEntry);
+let AboutContent = null;
+if (aboutEntry) {
+  const { Content } = await render(aboutEntry);
+  AboutContent = Content;
+}
 ---
 
 <Layout
@@ -36,8 +40,8 @@ const { Content: AboutContent } = await render(aboutEntry);
     {
       siteConfig.sections.about && (
         <About
-          title={aboutEntry.data.title}
-          photo={aboutEntry.data.photo}
+          title={aboutEntry?.data.title || ""}
+          photo={aboutEntry?.data.photo}
           Content={AboutContent}
         />
       )

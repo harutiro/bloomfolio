@@ -1,6 +1,5 @@
 ---
 import Layout from './Layout.astro';
-import { Image } from 'astro:assets';
 import SkillBadge from '../components/SkillBadge.astro';
 
 interface Props {
@@ -43,7 +42,7 @@ const readingTime = Math.ceil(wordCount / 200); // Average reading speed: 200 wo
     <!-- Featured Image -->
     {image && (
       <figure class="mb-8 rounded-2xl overflow-hidden">
-        <Image
+        <img
           src={image}
           alt={title}
           class="w-full aspect-video object-cover"

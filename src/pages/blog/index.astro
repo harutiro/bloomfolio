@@ -1,7 +1,6 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import { getCollection } from "astro:content";
-import { Image } from "astro:assets";
 import SkillBadge from "../../components/SkillBadge.astro";
 
 const blogPosts = await getCollection("blog");
@@ -66,7 +65,7 @@ function formatDate(date: Date) {
           {sortedPosts.map((post) => (
             <article class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
               <figure class="aspect-video">
-                <Image
+                <img
                   src={post.data.image}
                   alt={post.data.title}
                   class="w-full h-full object-cover"
