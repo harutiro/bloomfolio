@@ -1,0 +1,88 @@
+# GitLab CI/CD設定ファイル
+# Astroプロジェクトのビルドとデプロイを自動化
+
+stages:
+  - build
+  - deploy
+
+# キャッシュ設定（ビルド時間を短縮）
+cache:
+  key:
+    files:
+      - package-lock.json
+  paths:
+    - node_modules/
+    - .npm/
+
+# ビルドジョブ（Dockerイメージを使用）
+build:
+  stage: build
+  image: node:20-alpine
+  tags:
+    - deploy  # Runnerに設定したタグを指定
+  before_script:
+    - node --version
+    - npm --version
+    - npm ci --cache .npm --prefer-offline
+  script:
+    - npm run build
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1 week
+  only:
+    - release
+    - merge_requests
+
+# ローカルNginxにデプロイ
+deploy_production:
+  stage: deploy
+  image: ubuntu:latest
+  tags:
+    - deploy
+  variables:
+    NGINX_ROOT: /var/www/html
+  script:
+    - export BACKUP_DIR="${NGINX_ROOT}/backup/$(date +%Y%m%d_%H%M%S)"
+    - export RELEASE_DIR="${NGINX_ROOT}/releases/$(date +%Y%m%d_%H%M%S)"
+    - |
+      if [ -d "${NGINX_ROOT}/current" ]; then
+        echo "既存のデプロイをバックアップ中..."
+        mkdir -p "${NGINX_ROOT}/backup"
+        cp -r "${NGINX_ROOT}/current" "${BACKUP_DIR}"
+        echo "バックアップ完了: ${BACKUP_DIR}"
+      fi
+    - mkdir -p "${RELEASE_DIR}"
+    - echo "ビルド成果物をデプロイ中..."
+    - cp -r dist/* "${RELEASE_DIR}/"
+    - rm -f "${NGINX_ROOT}/current"
+    - ln -s "${RELEASE_DIR}" "${NGINX_ROOT}/current"
+    - echo "デプロイ完了 ${RELEASE_DIR}"
+    - |
+      if [ -d "${NGINX_ROOT}/backup" ]; then
+        echo "古いバックアップを削除中..."
+        cd "${NGINX_ROOT}/backup"
+        ls -t | tail -n +6 | xargs -r rm -rf
+      fi
+    - |
+      if [ -d "${NGINX_ROOT}/releases" ]; then
+        echo "古いリリースを削除中..."
+        cd "${NGINX_ROOT}/releases"
+        ls -t | tail -n +6 | xargs -r rm -rf
+      fi
+    - sudo nginx -t && sudo systemctl reload nginx || echo "Nginx再読み込みをスキップ"
+  after_script:
+    - echo "デプロイが完了しました"
+    - |
+      if [ -L "${NGINX_ROOT}/current" ]; then
+        echo "現在のデプロイ: $(readlink -f ${NGINX_ROOT}/current)"
+      else
+        echo "現在のデプロイ: N/A"
+      fi
+  only:
+    - release
+  dependencies:
+    - build
+  environment:
+    name: production
+    url: http://your-domain.com  # 実際のURLに変更してください
