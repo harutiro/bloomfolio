@@ -1,0 +1,46 @@
+# GitLab Backend設定
+backend:
+  name: gitlab
+  repo: your-username/your-repo-name  # TODO: 実際のリポジトリに変更してください
+  auth_type: pkce
+  app_id: YOUR_GITLAB_APP_ID  # TODO: 実際のGitLabアプリケーションIDに変更してください
+  api_root: https://gitlab.example.com/api/v4  # TODO: 実際のGitLabインスタンスURLに変更してください
+  base_url: https://gitlab.example.com/  # TODO: 実際のGitLabインスタンスURLに変更してください
+  auth_endpoint: oauth/authorize
+  branch: release
+
+# ローカル開発用バックエンド（GitLabログインテスト時はfalseに設定）
+local_backend: true
+
+# メディアファイル設定
+media_folder: "public/images/uploads"
+public_folder: "/images/uploads"
+
+# # サイト設定
+site_url: http://localhost:4321/  # TODO: 実際のドメインに変更してください
+display_url: http://localhost:4321/ 
+
+# 日本語化
+locale: ja
+
+# 編集ワークフロー（承認フロー）
+publish_mode: editorial_workflow
+
+# コレクション定義
+collections:
+  # 投稿（Blog）
+  - name: "blog"
+    label: "投稿"
+    folder: "src/content/blog"
+    create: true
+    slug: "{{slug}}"
+    extension: "md"
+    format: "frontmatter"
+    preview_path: "blog/{{slug}}"
+    fields:
+      - { label: "タイトル", name: "title", widget: "string" }
+      - { label: "説明", name: "description", widget: "text" }
+      - { label: "画像", name: "image", widget: "image" }
+      - { label: "公開日", name: "publishDate", widget: "datetime" }
+      - { label: "タグ", name: "tags", widget: "list", default: [] }
+      - { label: "本文", name: "body", widget: "markdown" }
